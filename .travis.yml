@@ -19,10 +19,10 @@ jobs:
     script:
     - CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -a -installsuffix cgo -o gitlab-crucible-bridge-linux-amd64 .
     deploy: 
-    provider: releases
-    api_key:
-      secure: $GITHUB_TOKEN
-    file: gitlab-crucible-bridge-linux-amd64
-    skip_cleanup: true
-    on:
-      tags: true
+      provider: releases
+      api_key:
+        secure: $GITHUB_TOKEN
+      file: gitlab-crucible-bridge-linux-amd64
+      skip_cleanup: true
+      on:
+        tags: true
