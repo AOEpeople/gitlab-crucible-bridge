@@ -26,7 +26,7 @@ All you have to do is to configure a "System Hook" for **Push events** or **Tag 
 
 | Environment Variable | Description | Example |
 | -------------------- | ----------- | ------- |
-|`CRUCIBLE_API_BASE_URL`|The base url to the |`https://crucible.example.com/cru/rest-service-fecru`|
+|`CRUCIBLE_API_BASE_URL`|The base url to the REST service endpoint|`https://crucible.example.com/cru/rest-service-fecru`|
 |`CRUCIBLE_API_KEY`|The API key which is used for triggering a refresh in Crucible. Look at the [Crucible documentation](https://confluence.atlassian.com/fisheye/setting-the-rest-api-token-317197023.html) on how to generate that.|XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX|
 |`CRUCIBLE_USERNAME`|Username of a Crucible user which can access the project list|username|
 |`CRUCIBLE_PASSWORD`|Password of a Crucible user which can access the project list|password|
