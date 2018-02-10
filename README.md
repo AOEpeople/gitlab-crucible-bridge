@@ -1,3 +1,6 @@
+[![Build Status](https://travis-ci.org/AOEpeople/gitlab-crucible-bridge.svg?branch=master)](https://travis-ci.org/AOEpeople/gitlab-crucible-bridge) 
+| [Docker Image](https://hub.docker.com/r/aoepeople/gitlab-crucible-bridge/)
+| [Binaries](https://github.com/AOEpeople/gitlab-crucible-bridge/releases)
 # GitLab Crucible Bridge
 This project provided some glue code to trigger a SCM refresh in Crucible via GitLab webhooks.
 
