@@ -7,6 +7,8 @@ import (
 	"log"
 	"os"
 	"strconv"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
+	"github.com/prometheus/client_golang/prometheus"
 )
 
 var client http.Client
@@ -83,6 +85,11 @@ func main() {
 		Timeout: 5 * time.Second,
 	}
 
+	prometheus.HistogramOpts{
+		Name:"gitlab_crucible_bridge_"
+	}
+
 	http.Handle("/", handler(crucibleSettings, gitLabSettings))
+	http.Handle("/metrics", promhttp.Handler())
 	http.ListenAndServe(":80", nil)
 }
