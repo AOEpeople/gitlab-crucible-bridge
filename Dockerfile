@@ -4,6 +4,9 @@ WORKDIR /go/src/github.com/aoepeople/gitlab-crucible-bridge/
 
 COPY . .
 
+RUN apk --no-cache add curl git
+RUN curl https://raw.githubusercontent.com/golang/dep/master/install.sh | sh
+RUN dep ensure
 RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o gitlab-crucible-bridge .
 
 FROM alpine:3.6
