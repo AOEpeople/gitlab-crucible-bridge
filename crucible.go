@@ -1,12 +1,10 @@
 package main
 
 import (
-	"net/http"
-	"net/url"
 	"encoding/json"
 	"fmt"
 	"log"
-	"errors"
+	"net/http"
 	"sync"
 )
 
@@ -16,7 +14,10 @@ type CrucibleProject struct {
 }
 
 type CrucibleRepositoryList struct {
-	Values []CrucibleRepository
+	Start    uint32
+	Size     uint32
+	LastPage bool `json:"lastPage"`
+	Values   []CrucibleRepository
 }
 
 type CrucibleRepository struct {
@@ -40,7 +41,7 @@ type CrucibleSettings struct {
 	Password               string
 	ProjectRefreshInterval int
 	ProjectLimit           int
-	muProjects sync.RWMutex
+	muProjects             sync.RWMutex
 	cachedCrucibleProjects []CrucibleProject
 }
 
@@ -51,17 +52,39 @@ func (settings *CrucibleSettings) getProjects() []CrucibleProject {
 }
 
 func (settings *CrucibleSettings) updateCachedProjects() {
-	authToken, err := login(settings.ApiBaseUrl, settings.Username, settings.Password)
-	if err != nil {
-		panic(err)
-	}
+	var projects []CrucibleProject
+	var start uint32
+	var lastPage = false
 
-	repositoriesUrl := fmt.Sprintf("%s/admin/repositories/?FEAUTH=%s&limit=%d", settings.ApiBaseUrl, authToken, settings.ProjectLimit)
+	for !lastPage {
+		repositories := settings.getCrucibleRepositories(start)
+
+		lastPage = repositories.LastPage
+		start = repositories.Start + repositories.Size
+
+		for _, repo := range repositories.Values {
+			project := CrucibleProject{
+				ID:       repo.Name,
+				Location: NormalizeGitUrl(repo.Git.Location),
+			}
+			projects = append(projects, project)
+		}
+	}
+	log.Println(fmt.Sprintf("found %d projects in Crucible", len(projects)))
+
+	settings.muProjects.Lock()
+	defer settings.muProjects.Unlock()
+	settings.cachedCrucibleProjects = projects
+}
+
+func (settings *CrucibleSettings) getCrucibleRepositories(start uint32) CrucibleRepositoryList {
+	repositoriesUrl := fmt.Sprintf("%s/admin/repositories/?start=%d&limit=%d", settings.ApiBaseUrl, start, settings.ProjectLimit)
 
 	request, err := http.NewRequest("GET", repositoriesUrl, nil)
 	if err != nil {
 		panic(err)
 	}
+	request.SetBasicAuth(settings.Username, settings.Password)
 	response, err := client.Do(request)
 	if err != nil {
 		panic(fmt.Sprintf("downloading projects from Crucible failed: %v", err))
@@ -76,37 +99,7 @@ func (settings *CrucibleSettings) updateCachedProjects() {
 	if err := json.NewDecoder(response.Body).Decode(&repositories); err != nil {
 		panic(err)
 	}
-
-	var projects []CrucibleProject
-	for _, repo := range repositories.Values {
-		project := CrucibleProject{
-			ID:       repo.Name,
-			Location: NormalizeGitUrl(repo.Git.Location),
-		}
-		projects = append(projects, project)
-	}
-	log.Println(fmt.Sprintf("found %d projects in Crucible", len(projects)))
-
-	settings.muProjects.Lock()
-	defer settings.muProjects.Unlock()
-	settings.cachedCrucibleProjects = projects
-}
-
-func login(crucibleBaseUrl string, username string, password string) (string, error) {
-	authUrl := crucibleBaseUrl + "/auth/login"
-
-	response, err := http.PostForm(authUrl, url.Values{"userName": {username}, "password": {password}})
-	if err != nil {
-		return "", err
-	}
-	if response.StatusCode == http.StatusUnauthorized {
-		return "", errors.New("login failed")
-	}
-	var loginResponse CrucibleLoginResponse
-	if err := json.NewDecoder(response.Body).Decode(&loginResponse); err != nil {
-		return "", err
-	}
-	return loginResponse.Token, nil
+	return repositories
 }
 
 func TriggerCrucibleSync(projectId string, client http.Client, crucible CrucibleSettings) error {

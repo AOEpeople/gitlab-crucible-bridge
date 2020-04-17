@@ -34,5 +34,5 @@ All you have to do is to configure a "System Hook" for **Push events** or **Tag 
 |`CRUCIBLE_USERNAME`|Username of a Crucible user which can access the project list|username|
 |`CRUCIBLE_PASSWORD`|Password of a Crucible user which can access the project list|password|
 |`CRUCIBLE_PROJECT_REFRESH_INTERVAL`|How often the repository list should be refreshed. (In minutes)|60|
-|`CRUCIBLE_PROJECT_LIMIT`|Limit of how many projects should be fetched from Crucible. Currently the app doesn't download the list paginated so you have to specify at least the number of total projects you have.|1000|
+|`CRUCIBLE_PROJECT_LIMIT`|Limit of how many projects should be fetched from Crucible in one request.|100|
 |`GITLAB_TOKEN`|A token in the GitLab webhook which will be used for validation in the app.|some_token|
