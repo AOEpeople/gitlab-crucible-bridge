@@ -23,7 +23,7 @@ jobs:
   - stage: build docker image
     script:
     - export VERSION_NUMBER=$(git describe --tags --always)
-    - docker login -u "$DOCKER_USERNAME" -p "$DOCKER_PASSWORD"
+    - docker login -u$DOCKER_USERNAME -p$DOCKER_PASSWORD
     - docker build -t aoepeople/gitlab-crucible-bridge:$VERSION_NUMBER .
     - docker push aoepeople/gitlab-crucible-bridge:$VERSION_NUMBER
   - stage: release on github
