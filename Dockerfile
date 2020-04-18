@@ -1,4 +1,4 @@
-FROM golang:alpine
+FROM golang:1.14-alpine3.11
 
 WORKDIR /go/src/github.com/aoepeople/gitlab-crucible-bridge/
 
@@ -9,7 +9,7 @@ RUN curl https://raw.githubusercontent.com/golang/dep/master/install.sh | sh
 RUN dep ensure
 RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o gitlab-crucible-bridge .
 
-FROM alpine:3.6
+FROM alpine:3.11
 RUN apk --no-cache add ca-certificates
 
 WORKDIR /root/
