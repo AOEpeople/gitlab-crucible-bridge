@@ -1,4 +1,4 @@
-[![Build Status](https://travis-ci.org/AOEpeople/gitlab-crucible-bridge.svg?branch=master)](https://travis-ci.org/AOEpeople/gitlab-crucible-bridge) 
+[![Actions Status](https://github.com/AOEpeople/gitlab-crucible-bridge/workflows/Test%20and%20build%20Docker%20image/badge.svg)](https://github.com/AOEpeople/gitlab-crucible-bridge/actions)
 | [Docker Image](https://hub.docker.com/r/aoepeople/gitlab-crucible-bridge/)
 | [Binaries](https://github.com/AOEpeople/gitlab-crucible-bridge/releases)
 # GitLab Crucible Bridge
