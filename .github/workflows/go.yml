@@ -19,7 +19,6 @@ jobs:
     - name: Check out code
       uses: actions/checkout@v2
     - name: Fetch tags
-      uses: actions/checkout@v2
       run: git fetch --depth=1 origin +refs/tags/*:refs/tags/*
     - name: Test
       run: go test -v ./...
