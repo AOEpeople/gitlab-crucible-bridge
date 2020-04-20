@@ -2,9 +2,8 @@ name: Release binaries to GitHub releases
 
 on:
   push:
-    branches: [ master ]
-  pull_request:
-    branches: [ master ]
+    tags:
+      - '*'
 
 jobs:
   build:
