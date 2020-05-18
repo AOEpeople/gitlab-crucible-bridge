@@ -1,14 +1,15 @@
 package main
 
 import (
-	"net/http"
-	"time"
 	"fmt"
 	"log"
+	"net/http"
 	"os"
 	"strconv"
-	"github.com/prometheus/client_golang/prometheus/promhttp"
+	"time"
+
 	"github.com/prometheus/client_golang/prometheus"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
 var client http.Client
@@ -25,24 +26,18 @@ func healthHandler(crucibleSettings *CrucibleSettings) http.Handler {
 	})
 }
 
-func handler(crucibleSettings *CrucibleSettings, gitLabSettings GitLabSettings, histogram prometheus.HistogramVec) http.Handler {
+func handler(crucibleSettings *CrucibleSettings, gitLabSettings GitLabSettings) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.Method == http.MethodGet {
 			return
 		}
 
-		start := time.Now()
 		gitUrl, err := GetNormalizedGitUrlFromRequest(r, gitLabSettings)
 		if err != nil {
-			duration := time.Since(start)
-			histogram.WithLabelValues(fmt.Sprintf("%d", http.StatusBadRequest)).Observe(duration.Seconds())
-
 			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
 		}
 		if gitUrl == "" {
-			duration := time.Since(start)
-			histogram.WithLabelValues(fmt.Sprintf("%d", http.StatusBadRequest)).Observe(duration.Seconds())
 			http.Error(w, "git url is empty. Is the hook in the proper format?", http.StatusBadRequest)
 			return
 		}
@@ -55,19 +50,15 @@ func handler(crucibleSettings *CrucibleSettings, gitLabSettings GitLabSettings, 
 		}
 
 		if projectId == "" {
-			duration := time.Since(start)
-			histogram.WithLabelValues(fmt.Sprintf("%d", http.StatusNotFound)).Observe(duration.Seconds())
 			http.Error(w, "project not found", http.StatusNotFound)
 			return
 		}
 
 		err = TriggerCrucibleSync(projectId, client, *crucibleSettings)
 		if err != nil {
-			duration := time.Since(start)
-			histogram.WithLabelValues(fmt.Sprintf("%d", http.StatusInternalServerError)).Observe(duration.Seconds())
-		} else {
-			duration := time.Since(start)
-			histogram.WithLabelValues(fmt.Sprintf("%d", http.StatusOK)).Observe(duration.Seconds())
+			log.Printf("error when sending request to Crucible: %s\n", err.Error())
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
 		}
 	})
 }
@@ -115,9 +106,11 @@ func main() {
 	histogram := prometheus.NewHistogramVec(prometheus.HistogramOpts{
 		Name: "gitlab_crucible_bridge_request_duration_seconds",
 		Help: "Duration of HTTP requests in seconds",
-	}, []string{"status"})
+		Buckets: prometheus.ExponentialBuckets(0.1, 3, 4),
+	}, []string{"code"})
 	prometheus.Register(histogram)
-	http.Handle("/", handler(crucibleSettings, gitLabSettings, *histogram))
+	http.Handle("/", promhttp.InstrumentHandlerDuration(
+		histogram, handler(crucibleSettings, gitLabSettings)))
 	http.Handle("/metrics", promhttp.Handler())
 	http.Handle("/health", healthHandler(crucibleSettings))
 	log.Fatal(http.ListenAndServe(":8888", nil))

@@ -1,8 +1,8 @@
 package main
 
 import (
-	"testing"
 	"net/http"
+	"testing"
 )
 
 func TestNormalizeGitUrl(t *testing.T) {
@@ -32,17 +32,16 @@ func TestValidateGitLabHeader(t *testing.T) {
 		{map[string]string{
 			"X-Gitlab-Event": "System Hook",
 			"X-Gitlab-Token": "valid",
-		}, false,},
+		}, false},
 		{map[string]string{
 			"X-Gitlab-Event": "System Hook",
 			"X-Gitlab-Token": "invalid",
-		}, true,},
+		}, true},
 		{map[string]string{
 			"X-Gitlab-Event": "Something",
 			"X-Gitlab-Token": "valid",
-		}, true,},
-		{map[string]string{
-		}, true,},
+		}, true},
+		{map[string]string{}, true},
 	}
 	for _, c := range cases {
 		gitLabSettings := GitLabSettings{
@@ -59,7 +58,7 @@ func TestValidateGitLabHeader(t *testing.T) {
 		var headerError = ValidateGitLabHeader(request, gitLabSettings)
 
 		if c.errorExpected != (headerError != nil) {
-			t.Errorf("ValidateGitLabHeader. Expected headerError '%v', but got %q", c.errorExpected, headerError, )
+			t.Errorf("ValidateGitLabHeader. Expected headerError '%v', but got %q", c.errorExpected, headerError)
 		}
 	}
 }
