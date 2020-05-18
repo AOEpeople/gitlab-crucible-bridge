@@ -30,10 +30,6 @@ type CrucibleRepositoryGitInformation struct {
 	NormalizedLocation string
 }
 
-type CrucibleLoginResponse struct {
-	Token string
-}
-
 type CrucibleSettings struct {
 	ApiBaseUrl             string
 	ApiKey                 string
