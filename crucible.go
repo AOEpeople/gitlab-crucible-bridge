@@ -8,11 +8,6 @@ import (
 	"sync"
 )
 
-type CrucibleProject struct {
-	ID       string
-	Location string
-}
-
 type CrucibleRepositoryList struct {
 	Start    uint32
 	Size     uint32
@@ -37,40 +32,52 @@ type CrucibleSettings struct {
 	Password               string
 	ProjectRefreshInterval int
 	ProjectLimit           int
-	muProjects             sync.RWMutex
-	cachedCrucibleProjects []CrucibleProject
 }
 
-func (settings *CrucibleSettings) getProjects() []CrucibleProject {
-	settings.muProjects.RLock()
-	defer settings.muProjects.RUnlock()
-	return settings.cachedCrucibleProjects
+type CrucibleRepositoriesCache struct {
+	mutex        sync.RWMutex
+	repositories map[string]string
 }
 
-func (settings *CrucibleSettings) updateCachedProjects() {
-	var projects []CrucibleProject
-	var start uint32
-	var lastPage = false
+func (cache *CrucibleRepositoriesCache) getRepositoriesCount() int {
+	cache.mutex.RLock()
+	defer cache.mutex.RUnlock()
+	return len(cache.repositories)
+}
 
-	for !lastPage {
-		repositories := settings.getCrucibleRepositories(start)
+func (cache *CrucibleRepositoriesCache) isEmpty() bool {
+	return cache.getRepositoriesCount() == 0
+}
 
-		lastPage = repositories.LastPage
-		start = repositories.Start + repositories.Size
+func (cache *CrucibleRepositoriesCache) updateFactory(settings CrucibleSettings) func() {
+	return func() {
+		var repositoriesMap = make(map[string]string)
+		var start uint32
+		var lastPage = false
 
-		for _, repo := range repositories.Values {
-			project := CrucibleProject{
-				ID:       repo.Name,
-				Location: NormalizeGitUrl(repo.Git.Location),
+		for !lastPage {
+			repositories := settings.getCrucibleRepositories(start)
+
+			lastPage = repositories.LastPage
+			start = repositories.Start + repositories.Size
+
+			for _, repo := range repositories.Values {
+				normalizedUrl := NormalizeGitUrl(repo.Git.Location)
+				repositoriesMap[normalizedUrl] = repo.Name
 			}
-			projects = append(projects, project)
 		}
-	}
-	log.Println(fmt.Sprintf("found %d projects in Crucible", len(projects)))
+		log.Printf("found %d repositories in Crucible\n", len(repositoriesMap))
 
-	settings.muProjects.Lock()
-	defer settings.muProjects.Unlock()
-	settings.cachedCrucibleProjects = projects
+		cache.mutex.Lock()
+		defer cache.mutex.Unlock()
+		cache.repositories = repositoriesMap
+	}
+}
+
+func (cache *CrucibleRepositoriesCache) getRepositoryName(url string) string {
+	cache.mutex.RLock()
+	defer cache.mutex.RUnlock()
+	return cache.repositories[url]
 }
 
 func (settings *CrucibleSettings) getCrucibleRepositories(start uint32) CrucibleRepositoryList {
