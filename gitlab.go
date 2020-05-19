@@ -2,10 +2,10 @@ package main
 
 import (
 	"encoding/json"
-	"net/http"
-	"strings"
 	"errors"
 	"fmt"
+	"net/http"
+	"strings"
 )
 
 type GitLabHook struct {
