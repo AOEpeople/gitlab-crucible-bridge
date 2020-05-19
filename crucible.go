@@ -98,7 +98,7 @@ func (settings *CrucibleSettings) getCrucibleRepositories(start uint32) Crucible
 	return repositories
 }
 
-func TriggerCrucibleSync(projectId string, client http.Client, crucible CrucibleSettings) error {
+func TriggerCrucibleSync(projectId string, client http.Client, crucible *CrucibleSettings) error {
 
 	triggerUrl := fmt.Sprintf("%s/admin/repositories/%s/incremental-index", crucible.ApiBaseUrl, projectId)
 

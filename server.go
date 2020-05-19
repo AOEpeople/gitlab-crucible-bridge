@@ -54,7 +54,7 @@ func handler(crucibleSettings *CrucibleSettings, gitLabSettings GitLabSettings) 
 			return
 		}
 
-		err = TriggerCrucibleSync(projectId, client, *crucibleSettings)
+		err = TriggerCrucibleSync(projectId, client, crucibleSettings)
 		if err != nil {
 			log.Printf("error when sending request to Crucible: %s\n", err.Error())
 			http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -104,8 +104,8 @@ func main() {
 	}
 
 	histogram := prometheus.NewHistogramVec(prometheus.HistogramOpts{
-		Name: "gitlab_crucible_bridge_request_duration_seconds",
-		Help: "Duration of HTTP requests in seconds",
+		Name:    "gitlab_crucible_bridge_request_duration_seconds",
+		Help:    "Duration of HTTP requests in seconds",
 		Buckets: prometheus.ExponentialBuckets(0.1, 3, 4),
 	}, []string{"code"})
 	prometheus.Register(histogram)
