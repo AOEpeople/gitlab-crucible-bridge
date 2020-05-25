@@ -45,7 +45,7 @@ func handler(crucibleSettings CrucibleSettings, gitLabSettings GitLabSettings, c
 			return
 		}
 
-		err = TriggerCrucibleSync(projectId, client, crucibleSettings)
+		err = TriggerCrucibleSync(projectId, client, &crucibleSettings)
 		if err != nil {
 			log.Printf("error when sending request to Crucible: %s\n", err.Error())
 			http.Error(w, err.Error(), http.StatusInternalServerError)
