@@ -14,19 +14,15 @@ import (
 
 var client http.Client
 
-func healthHandler(crucibleSettings *CrucibleSettings) http.Handler {
+func healthHandler(cache *CrucibleRepositoriesCache) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		projects := crucibleSettings.getProjects()
-		if len(projects) > 0 {
-			return
-		} else {
+		if cache.isEmpty() {
 			http.Error(w, "not enough projects", http.StatusPreconditionFailed)
-			return
 		}
 	})
 }
 
-func handler(crucibleSettings *CrucibleSettings, gitLabSettings GitLabSettings) http.Handler {
+func handler(crucibleSettings CrucibleSettings, gitLabSettings GitLabSettings, crucibleCache *CrucibleRepositoriesCache) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.Method == http.MethodGet {
 			return
@@ -42,12 +38,7 @@ func handler(crucibleSettings *CrucibleSettings, gitLabSettings GitLabSettings) 
 			return
 		}
 
-		var projectId string
-		for _, project := range crucibleSettings.cachedCrucibleProjects {
-			if project.Location == gitUrl {
-				projectId = project.ID
-			}
-		}
+		projectId := crucibleCache.getRepositoryName(gitUrl)
 
 		if projectId == "" {
 			http.Error(w, "project not found", http.StatusNotFound)
@@ -83,7 +74,7 @@ func main() {
 		panic(err)
 	}
 
-	crucibleSettings := &CrucibleSettings{
+	crucibleSettings := CrucibleSettings{
 		ApiBaseUrl:             os.Getenv("CRUCIBLE_API_BASE_URL"),
 		ApiKey:                 os.Getenv("CRUCIBLE_API_KEY"),
 		Username:               os.Getenv("CRUCIBLE_USERNAME"),
@@ -94,9 +85,10 @@ func main() {
 	gitLabSettings := GitLabSettings{
 		Token: os.Getenv("GITLAB_TOKEN"),
 	}
-
-	crucibleSettings.updateCachedProjects()
-	go cron(crucibleSettings.updateCachedProjects, time.Minute*time.Duration(crucibleSettings.ProjectRefreshInterval))
+	crucibleCache := &CrucibleRepositoriesCache{}
+	updateCache := crucibleCache.updateFactory(crucibleSettings)
+	updateCache()
+	go cron(updateCache, time.Minute*time.Duration(crucibleSettings.ProjectRefreshInterval))
 
 	log.Println(fmt.Sprintf("downloading Crucible project list every %d minute(s)", crucibleSettings.ProjectRefreshInterval))
 	client = http.Client{
@@ -110,8 +102,8 @@ func main() {
 	}, []string{"code"})
 	prometheus.Register(histogram)
 	http.Handle("/", promhttp.InstrumentHandlerDuration(
-		histogram, handler(crucibleSettings, gitLabSettings)))
+		histogram, handler(crucibleSettings, gitLabSettings, crucibleCache)))
 	http.Handle("/metrics", promhttp.Handler())
-	http.Handle("/health", healthHandler(crucibleSettings))
+	http.Handle("/health", healthHandler(crucibleCache))
 	log.Fatal(http.ListenAndServe(":8888", nil))
 }
