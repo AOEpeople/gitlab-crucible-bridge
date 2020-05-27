@@ -25,7 +25,7 @@ All you have to do is to configure a "System Hook" for **Push events** or **Tag 
 
 ## This application
 
-**All of the following settings are required!**
+### Mandatory settings
 
 | Environment Variable | Description | Example |
 | -------------------- | ----------- | ------- |
@@ -36,3 +36,8 @@ All you have to do is to configure a "System Hook" for **Push events** or **Tag 
 |`CRUCIBLE_PROJECT_REFRESH_INTERVAL`|How often the repository list should be refreshed. (In minutes)|60|
 |`CRUCIBLE_PROJECT_LIMIT`|Limit of how many projects should be fetched from Crucible in one request.|100|
 |`GITLAB_TOKEN`|A token in the GitLab webhook which will be used for validation in the app.|some_token|
+
+### Optional settings
+| Environment Variable | Description | Example |
+| -------------------- | ----------- | ------- |
+|`GITLAB_HOSTNAMES`|Space-separated list of host names used by GitLab|`example.com example.org altssh.example.com:443`|

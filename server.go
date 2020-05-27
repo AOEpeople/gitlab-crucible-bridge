@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"os"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/prometheus/client_golang/prometheus"
@@ -83,10 +84,14 @@ func main() {
 		ProjectLimit:           int(projectLimit),
 	}
 	gitLabSettings := GitLabSettings{
-		Token: os.Getenv("GITLAB_TOKEN"),
+		Token:     os.Getenv("GITLAB_TOKEN"),
+		HostNames: strings.Fields(os.Getenv("GITLAB_HOSTNAMES")),
 	}
+
 	crucibleCache := &CrucibleRepositoriesCache{}
-	updateCache := crucibleCache.updateFactory(crucibleSettings)
+	updateCache := crucibleCache.updateFactory(crucibleSettings, func(url string) string {
+		return NormalizeGitUrl(url, gitLabSettings.HostNames)
+	})
 	updateCache()
 	go cron(updateCache, time.Minute*time.Duration(crucibleSettings.ProjectRefreshInterval))
 

@@ -7,15 +7,20 @@ import (
 
 func TestNormalizeGitUrl(t *testing.T) {
 	cases := []struct {
-		gitUrl, normalizedUrl string
+		gitUrl          string
+		gitLabHostNames []string
+		normalizedUrl   string
 	}{
-		{"http://example.com/jsmith/example", "example.com/jsmith/example"},
-		{"https://example.com/jsmith/example", "example.com/jsmith/example"},
-		{"git@example.com:jsmith/example.git", "example.com/jsmith/example"},
-		{"", ""},
+		{"http://example.com/jsmith/example", []string{}, "example.com/jsmith/example"},
+		{"https://example.com/jsmith/example", []string{}, "example.com/jsmith/example"},
+		{"git@example.com:jsmith/example.git", []string{}, "example.com/jsmith/example"},
+		{"", []string{}, ""},
+		{"http://example.org/jsmith/example", []string{"example.com", "example.org"}, "example.com/jsmith/example"},
+		{"http://example.com/jsmith/example", []string{"example.com", "example.org"}, "example.com/jsmith/example"},
+		{"ssh://git@altssh.example.com:443/jsmith/example", []string{"example.com", "altssh.example.com:443"}, "example.com/jsmith/example"},
 	}
 	for _, c := range cases {
-		got := NormalizeGitUrl(c.gitUrl)
+		got := NormalizeGitUrl(c.gitUrl, c.gitLabHostNames)
 		if got != c.normalizedUrl {
 			t.Errorf("NormalizeGitUrl(%q) == %q, expected %q", c.gitUrl, got, c.normalizedUrl)
 		}
