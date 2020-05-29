@@ -49,7 +49,7 @@ func (cache *CrucibleRepositoriesCache) isEmpty() bool {
 	return cache.getRepositoriesCount() == 0
 }
 
-func (cache *CrucibleRepositoriesCache) updateFactory(settings CrucibleSettings) func() {
+func (cache *CrucibleRepositoriesCache) updateFactory(settings CrucibleSettings, normalizeGitUrl func(string) string) func() {
 	return func() {
 		var repositoriesMap = make(map[string]string)
 		var start uint32
@@ -62,7 +62,7 @@ func (cache *CrucibleRepositoriesCache) updateFactory(settings CrucibleSettings)
 			start = repositories.Start + repositories.Size
 
 			for _, repo := range repositories.Values {
-				normalizedUrl := NormalizeGitUrl(repo.Git.Location)
+				normalizedUrl := normalizeGitUrl(repo.Git.Location)
 				repositoriesMap[normalizedUrl] = repo.Name
 			}
 		}

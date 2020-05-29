@@ -18,13 +18,21 @@ type GitLabHookProject struct {
 }
 
 type GitLabSettings struct {
-	Token string
+	Token     string
+	HostNames []string
 }
 
-func NormalizeGitUrl(url string) string {
+func NormalizeGitUrl(url string, gitLabHostNames []string) string {
 	url = strings.TrimPrefix(url, "http://")
 	url = strings.TrimPrefix(url, "https://")
+	url = strings.TrimPrefix(url, "ssh://")
 	url = strings.TrimPrefix(url, "git@")
+	if len(gitLabHostNames) > 1 {
+		canonicalHostName := gitLabHostNames[0]
+		for _, altHostName := range gitLabHostNames[1:] {
+			url = strings.Replace(url, altHostName, canonicalHostName, -1)
+		}
+	}
 	url = strings.TrimSuffix(url, ".git")
 	url = strings.Replace(url, ":", "/", -1)
 	return url
@@ -57,5 +65,5 @@ func GetNormalizedGitUrlFromRequest(request *http.Request, gitLabSettings GitLab
 		return "", fmt.Errorf("could not read body: %v", decoderError)
 	}
 
-	return NormalizeGitUrl(gitLabHook.Project.WebUrl), nil
+	return NormalizeGitUrl(gitLabHook.Project.WebUrl, gitLabSettings.HostNames), nil
 }
