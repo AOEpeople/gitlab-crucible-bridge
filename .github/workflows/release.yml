@@ -1,4 +1,4 @@
-name: Release binaries to GitHub releases
+name: Release to DockerHub and GitHub
 
 on:
   push:
@@ -6,7 +6,33 @@ on:
       - '*'
 
 jobs:
-  build:
+  docker:
+    name: Test and publish Docker image
+    runs-on: ubuntu-latest
+    steps:
+      - name: Set up Go 1.14
+        uses: actions/setup-go@v1
+        with:
+          go-version: 1.14
+        id: go
+      - name: Check out code
+        uses: actions/checkout@v2
+      - name: Fetch tags
+        run: git fetch --prune --tags --unshallow
+      - name: Test
+        run: go test -v ./...
+      - name: Get version
+        run: echo "::set-env name=VERSION_NUMBER::$(git describe --tags --always)"
+      - name: Show version
+        run: echo "Using version ${VERSION_NUMBER}"
+      - name: Push to Docker Hub
+        uses: docker/build-push-action@v1
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+          repository: aoepeople/gitlab-crucible-bridge
+          tags: ${{ env.VERSION_NUMBER }}
+  github:
     name: Build and publish binaries
     runs-on: ubuntu-latest
     steps:
