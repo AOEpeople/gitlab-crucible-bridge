@@ -100,6 +100,7 @@ func (settings *CrucibleSettings) getCrucibleRepositories(start uint32) Crucible
 
 	var repositories CrucibleRepositoryList
 	if err := json.NewDecoder(response.Body).Decode(&repositories); err != nil {
+		fmt.Println(string(b))
 		panic(err)
 	}
 	return repositories
