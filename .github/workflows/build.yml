@@ -22,9 +22,9 @@ jobs:
     - name: Test
       run: go test -v ./...
     - name: Get version
-      run: echo "::set-env name=VERSION_NUMBER::$(git describe --tags --always)"
+      run: echo "VERSION_NUMBER=$(git describe --tags --always)" >> $GITHUB_ENV
     - name: Show version
-      run: echo "Using version ${VERSION_NUMBER}"
+      run: echo "Using version ${{ env.VERSION_NUMBER }}"
     - name: Push to Docker Hub
       uses: docker/build-push-action@v1
       with:
