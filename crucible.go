@@ -92,6 +92,9 @@ func (settings *CrucibleSettings) getCrucibleRepositories(start uint32) Crucible
 	if err != nil {
 		panic(fmt.Sprintf("downloading projects from Crucible failed: %v", err))
 	}
+	if response.StatusCode != 200 {
+		panic(fmt.Sprintf("request failed, got status code %d", response.StatusCode))
+	}
 	defer response.Body.Close()
 	var b []byte
 	if _, err := response.Body.Read(b); err != nil {
