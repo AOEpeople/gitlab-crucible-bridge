@@ -44,7 +44,7 @@ func ValidateGitLabHeader(request *http.Request, gitLabSettings GitLabSettings) 
 	if eventHeader != "System Hook" {
 		return errors.New("no valid GitLab Hook Header found")
 	}
-	tokenHeader := request.Header.Get("X-Gitlab-Token")
+	tokenHeader := strings.TrimSpace(request.Header.Get("X-Gitlab-Token"))
 
 	if tokenHeader != gitLabSettings.Token {
 		return fmt.Errorf("invalid GitLab token: %v", tokenHeader)

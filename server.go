@@ -84,7 +84,7 @@ func main() {
 		ProjectLimit:           int(projectLimit),
 	}
 	gitLabSettings := GitLabSettings{
-		Token:     os.Getenv("GITLAB_TOKEN"),
+		Token:     strings.TrimSpace(os.Getenv("GITLAB_TOKEN")),
 		HostNames: strings.Fields(os.Getenv("GITLAB_HOSTNAMES")),
 	}
 
