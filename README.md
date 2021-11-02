@@ -2,7 +2,7 @@
 | [Docker Image](https://hub.docker.com/r/aoepeople/gitlab-crucible-bridge/)
 | [Binaries](https://github.com/AOEpeople/gitlab-crucible-bridge/releases)
 # GitLab Crucible Bridge
-This project provided some glue code to trigger a SCM refresh in Crucible via GitLab webhooks.
+This project provided some glue code to trigger an SCM refresh in Crucible via GitLab webhooks.
 
 ## Why?
 To trigger an SCM refresh in Crucible you need the Crucible project ID.
@@ -21,7 +21,7 @@ Tested with:
 # Configuration
 ## GitLab itself
 You can use GitLab's "System Hooks". There is no special configuration in each GitLab repository needed.
-All you have to do is to configure a "System Hook" for **Push events** or **Tag push events** and provide a **Secret Token**.
+All you have to do is to configure a "System Hook" for **Push events** or **Tag push events**, point the URL to the **GitLab Crucible Brigde** (side note: the bridge listens on port 8888) and provide a **Secret Token**.
 
 ## This application
 
